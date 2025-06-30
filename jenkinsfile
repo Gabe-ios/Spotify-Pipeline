@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'jdk17'
+        nodejs 'node16'
+    }
+
     environment {
         IMAGE_NAME = "spotify-clone"
         CONTAINER_NAME = "spotify-container"
@@ -8,15 +13,21 @@ pipeline {
     }
 
     stages {
-        stage('Clone') {
+        stage('Clean Workspace') {
             steps {
-                git url: 'https://github.com/Gabe-ios/Spotify-Pipeline.git', branch: 'main'
+                cleanWs()
+            }
+        }
+
+        stage('Checkout from Git') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Gabe-ios/Spotify-Pipeline.git'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
+                withCredentials([string(credentialsId: 'Sonar-token', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQubeServer') {
                         sh '''
                             $SCANNER_HOME/bin/sonar-scanner \
@@ -33,11 +44,18 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    def qualityGate = waitForQualityGate abortPipeline: false, credentialsId: 'SonarQubeToken'
+                    def qualityGate = waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
                     if (qualityGate.status != 'OK') {
                         error "Pipeline failed due to quality gate status: ${qualityGate.status}"
                     }
                 }
+            }
+        }
+
+        stage('OWASP FS SCAN') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'Dependency-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
 
