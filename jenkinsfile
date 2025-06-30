@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
-                git 'https://github.com/Gabe-ios/Spotify-Pipeline.git'
+                git branch: 'main', url: 'https://github.com/Gabe-ios/Spotify-Pipeline.git'
             }
         }
 
