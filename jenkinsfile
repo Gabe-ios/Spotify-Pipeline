@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "spotify-clone"
         CONTAINER_NAME = "spotify-container"
-        SCANNER_HOME = tool 'SonarQubeScanner'
+        SCANNER_HOME = tool 'SonarQubeServer'
     }
 
     stages {
@@ -16,7 +16,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'Sonar-token', variable: 'SONAR_TOKEN')]) {
+                withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQubeScanner') {
                         sh '''
                             $SCANNER_HOME/bin/sonar-scanner \
@@ -33,7 +33,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    def qualityGate = waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+                    def qualityGate = waitForQualityGate abortPipeline: false, credentialsId: 'SonarQubeToken'
                     if (qualityGate.status != 'OK') {
                         error "Pipeline failed due to quality gate status: ${qualityGate.status}"
                     }
