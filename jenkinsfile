@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'focusongabe/spotify-clone'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        REMOTE_USER = 'ec2-user' // Change to 'ubuntu' if that's your actual user
+        REMOTE_HOST = '3.129.123.245'
+        REMOTE_PATH = '/home/ec2-user/Spotify-Pipeline' // Adjust if the path is different
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Gabe-ios/Spotify-Pipeline.git'
+            }
+        }
+
+        stage('Build and Deploy on Remote Docker Host') {
+            steps {
+                sshagent(credentials: ['ubuntu']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST '
+                        if [ ! -d "$REMOTE_PATH" ]; then
+                            git clone https://github.com/Gabe-ios/Spotify-Pipeline.git $REMOTE_PATH
+                        fi
+                        cd $REMOTE_PATH &&
+                        git pull &&
+                        docker build -t $IMAGE_NAME:$IMAGE_TAG . &&
+                        docker stop spotify-clone || true &&
+                        docker rm spotify-clone || true &&
+                        docker run -d --rm --name spotify-clone -p 8080:80 $IMAGE_NAME:$IMAGE_TAG
+                    '
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Build and remote deployment successful!"
+        }
+        failure {
+            echo "❌ Something went wrong during pipeline execution."
+        }
+    }
+}
