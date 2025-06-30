@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'jdk17'
+        nodejs 'node16'
+    }
+
     environment {
         IMAGE_NAME = "spotify-clone"
         CONTAINER_NAME = "spotify-container"
@@ -22,7 +27,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
+                withCredentials([string(credentialsId: 'Sonar-token', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQubeServer') {
                         sh '''
                             $SCANNER_HOME/bin/sonar-scanner \
@@ -54,6 +59,12 @@ pipeline {
             }
         }
 
+        stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -62,11 +73,9 @@ pipeline {
             }
         }
 
-        stage('Stop & Remove Old Container') {
+        stage('TRIVY Image Scan') {
             steps {
-                script {
-                    sh "docker rm -f $CONTAINER_NAME || true"
-                }
+                sh "trivy image $IMAGE_NAME > trivyimage.txt"
             }
         }
 
