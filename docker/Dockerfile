@@ -1,21 +1,25 @@
-# Use an official Node runtime as a parent image
-FROM node:18.17.0 
+# Step 1: Build the app
+FROM node:18 AS builder
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY package.json yarn.lock ./
-
-RUN yarn install --only=production
+COPY package*.json ./
+RUN npm install
 
 COPY . .
+RUN npm run build
 
-RUN yarn run build
-
-# Production image using Nginx to serve built files
+# Step 2: Serve with Nginx
 FROM nginx:alpine
 
-COPY --from=builder /usr/src/app/build /usr/share/nginx/html
+# Remove default nginx site
+RUN rm -rf /usr/share/nginx/html/*
 
+# Copy build files
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Expose port 80
 EXPOSE 80
 
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
