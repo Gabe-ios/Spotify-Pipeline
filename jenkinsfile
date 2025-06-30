@@ -62,9 +62,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t $IMAGE_NAME ."
-                }
+                sh "docker build -t $IMAGE_NAME ."
             }
         }
 
@@ -74,12 +72,28 @@ pipeline {
             }
         }
 
+        stage('Stop & Remove Old Container') {
+            steps {
+                sh "docker rm -f $CONTAINER_NAME || true"
+            }
+        }
+
         stage('Run Docker Container') {
             steps {
-                script {
-                    sh "docker run -d --name $CONTAINER_NAME -p 80:80 $IMAGE_NAME"
-                }
+                sh "docker run -d --name $CONTAINER_NAME -p 80:80 $IMAGE_NAME"
             }
+        }
+    }
+
+    post {
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                      "URL: ${env.BUILD_URL}<br/>",
+                to: 'gabriel.walkerzuniga@gmail.com',
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
 }
