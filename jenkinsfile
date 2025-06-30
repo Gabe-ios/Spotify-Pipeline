@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         REMOTE_HOST = '3.129.123.245'
-        REMOTE_USER = 'ubuntu' // Based on your credential
+        REMOTE_USER = 'ubuntu'
         DOCKERFILE_DIR = 'docker'
         IMAGE_NAME = "spotify-pipeline"
         IMAGE_TAG = "${env.BUILD_ID}"
@@ -18,9 +18,11 @@ pipeline {
 
         stage('Build Docker Image on Remote Host') {
             steps {
-                sshagent(['ec2-ssh-key']) {
+                // Use the SSH private key file credential
+                withCredentials([file(credentialsId: 'SSH-KEY.pem', variable: 'SSH_KEY')]) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no \$REMOTE_USER@\$REMOTE_HOST '
+                        chmod 600 \$SSH_KEY
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$REMOTE_USER@\$REMOTE_HOST '
                             rm -rf Spotify-Pipeline &&
                             git clone https://github.com/Gabe-ios/Spotify-Pipeline.git &&
                             cd Spotify-Pipeline &&
@@ -33,9 +35,10 @@ pipeline {
 
         stage('Run Docker Container on Remote Host') {
             steps {
-                sshagent(['ec2-ssh-key']) {
+                withCredentials([file(credentialsId: 'SSH-KEY.pem', variable: 'SSH_KEY')]) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no \$REMOTE_USER@\$REMOTE_HOST '
+                        chmod 600 \$SSH_KEY
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$REMOTE_USER@\$REMOTE_HOST '
                             docker stop \$IMAGE_NAME || true &&
                             docker rm \$IMAGE_NAME || true &&
                             docker run -d --name \$IMAGE_NAME \$IMAGE_NAME:\$IMAGE_TAG
