@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "spotify-clone"
         CONTAINER_NAME = "spotify-container"
-        SCANNER_HOME = tool 'SonarQubeServer'
+        SCANNER_HOME = tool 'SonarQubeScanner'
     }
 
     stages {
