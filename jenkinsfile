@@ -5,6 +5,8 @@ pipeline {
         IMAGE_NAME = "spotify-clone"
         CONTAINER_NAME = "spotify-container"
         SCANNER_HOME = tool 'SonarQubeScanner'
+        REACT_APP_SPOTIFY_CLIENT_ID = "cb5fd1d086f8480ca1e09689d8383811"
+        REACT_APP_SPOTIFY_REDIRECT_URL = "https://3.129.123.245/callback"
     }
 
     stages {
@@ -39,7 +41,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    def qualityGate = waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+                    def qualityGate = waitForQualityGate abortPipeline: false, credentialsId: 'SonarQubeToken'
                     if (qualityGate.status != 'OK') {
                         error "Pipeline failed due to quality gate status: ${qualityGate.status}"
                     }
@@ -62,7 +64,12 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t $IMAGE_NAME ."
+                sh """
+                    docker build \
+                    --build-arg REACT_APP_SPOTIFY_CLIENT_ID=${REACT_APP_SPOTIFY_CLIENT_ID} \
+                    --build-arg REACT_APP_SPOTIFY_REDIRECT_URL=${REACT_APP_SPOTIFY_REDIRECT_URL} \
+                    -t $IMAGE_NAME .
+                """
             }
         }
 
