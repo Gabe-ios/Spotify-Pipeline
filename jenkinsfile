@@ -4,12 +4,40 @@ pipeline {
     environment {
         IMAGE_NAME = "spotify-clone"
         CONTAINER_NAME = "spotify-container"
+        SCANNER_HOME = tool 'SonarQubeScanner'
     }
 
     stages {
         stage('Clone') {
             steps {
                 git url: 'https://github.com/Gabe-ios/Spotify-Pipeline.git', branch: 'main'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withCredentials([string(credentialsId: 'Sonar-token', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('SonarQubeScanner') {
+                        sh '''
+                            $SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectKey=SpotifyClone \
+                            -Dsonar.projectName=SpotifyClone \
+                            -Dsonar.sources=src \
+                            -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    def qualityGate = waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+                    if (qualityGate.status != 'OK') {
+                        error "Pipeline failed due to quality gate status: ${qualityGate.status}"
+                    }
+                }
             }
         }
 
