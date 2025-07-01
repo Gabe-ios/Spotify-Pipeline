@@ -6,7 +6,6 @@ pipeline {
         CONTAINER_NAME = "spotify-container"
         SCANNER_HOME = tool 'SonarQubeScanner'
         REACT_APP_SPOTIFY_CLIENT_ID = "cb5fd1d086f8480ca1e09689d8383811"
-        REACT_APP_SPOTIFY_REDIRECT_URL = "https://3.129.123.245/callback"
     }
 
     stages {
@@ -22,17 +21,32 @@ pipeline {
             }
         }
 
+        stage('Start Ngrok & Get Public URL') {
+            steps {
+                script {
+                    sh 'nohup ngrok http 80 --log=stdout > ngrok.log 2>&1 &'
+                    sleep 5 // give ngrok time to start
+                    def ngrokJson = sh(script: "curl --silent http://localhost:4040/api/tunnels", returnStdout: true).trim()
+                    def jsonSlurper = new groovy.json.JsonSlurper()
+                    def tunnels = jsonSlurper.parseText(ngrokJson).tunnels
+                    def httpsTunnel = tunnels.find { it.proto == 'https' }
+                    env.REACT_APP_SPOTIFY_REDIRECT_URL = httpsTunnel.public_url + "/callback"
+                    echo "Ngrok public URL for redirect: ${env.REACT_APP_SPOTIFY_REDIRECT_URL}"
+                }
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'SonarQubeToken', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQubeServer') {
-                        sh '''
+                        sh """
                             $SCANNER_HOME/bin/sonar-scanner \
                             -Dsonar.projectKey=SpotifyClone \
                             -Dsonar.projectName=SpotifyClone \
                             -Dsonar.sources=src \
                             -Dsonar.login=$SONAR_TOKEN
-                        '''
+                        """
                     }
                 }
             }
@@ -41,9 +55,9 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    def qualityGate = waitForQualityGate abortPipeline: false, credentialsId: 'SonarQubeToken'
+                    def qualityGate = waitForQualityGate abortPipeline: true, credentialsId: 'SonarQubeToken'
                     if (qualityGate.status != 'OK') {
-                        error "Pipeline failed due to quality gate status: ${qualityGate.status}"
+                        error "Pipeline aborted due to quality gate failure: ${qualityGate.status}"
                     }
                 }
             }
@@ -79,14 +93,10 @@ pipeline {
             }
         }
 
-        stage('Stop & Remove Old Container') {
-            steps {
-                sh "docker rm -f $CONTAINER_NAME || true"
-            }
-        }
-
         stage('Run Docker Container') {
             steps {
+                // Stop and remove existing container if exists to avoid name conflicts
+                sh "docker rm -f $CONTAINER_NAME || true"
                 sh "docker run -d --name $CONTAINER_NAME -p 80:80 $IMAGE_NAME"
             }
         }
