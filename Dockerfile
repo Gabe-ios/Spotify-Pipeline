@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 COPY package.json yarn.lock ./
 RUN yarn install
 COPY . .
-RUN yarn run build
+RUN REACT_APP_SPOTIFY_CLIENT_ID=$REACT_APP_SPOTIFY_CLIENT_ID REACT_APP_SPOTIFY_REDIRECT_URL=$REACT_APP_SPOTIFY_REDIRECT_URL yarn run build
 
 FROM nginx:1.23.2-alpine
 RUN rm -rf /etc/nginx/conf.d
