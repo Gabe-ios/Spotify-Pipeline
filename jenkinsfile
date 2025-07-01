@@ -6,7 +6,7 @@ pipeline {
         CONTAINER_NAME = "spotify-container"
         SCANNER_HOME = tool 'SonarQubeScanner'
 
-        REACT_APP_SPOTIFY_CLIENT_ID = "cb5fd1d086f8480ca1e09689d8383811"
+        REACT_APP_SPOTIFY_CLIENT_ID = ""
         REACT_APP_SPOTIFY_REDIRECT_URL = "https://spotify.focusarchive.co/callback"
     }
 
