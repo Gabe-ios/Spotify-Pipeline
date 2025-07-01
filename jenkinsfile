@@ -6,7 +6,6 @@ pipeline {
         CONTAINER_NAME = "spotify-container"
         SCANNER_HOME = tool 'SonarQubeScanner'
 
-        // Spotify credentials
         REACT_APP_SPOTIFY_CLIENT_ID = "cb5fd1d086f8480ca1e09689d8383811"
         REACT_APP_SPOTIFY_REDIRECT_URL = "https://4093-3-129-123-245.ngrok-free.app/"
     }
@@ -89,4 +88,37 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh "docker run -d --name $CONTAINER_NAME -p 80:80 $IMA_
+                sh "docker run -d --name $CONTAINER_NAME -p 80:80 $IMAGE_NAME"
+            }
+        }
+        
+        stage('Send Email Notification') {
+            steps {
+                emailext (
+                    subject: "Build ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
+                    body: """
+                        <p>Job: ${env.JOB_NAME}</p>
+                        <p>Build Number: ${env.BUILD_NUMBER}</p>
+                        <p>Status: ${currentBuild.currentResult}</p>
+                        <p>URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                    """,
+                    recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+                    to: 'gabriel.walkerzuniga@gmail.com',
+                    mimeType: 'text/html'
+                )
+            }
+        }
+    }
+
+    post {
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                      "URL: ${env.BUILD_URL}<br/>",
+                to: 'gabriel.walkerzuniga@gmail.com',
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+        }
+    }
+}
