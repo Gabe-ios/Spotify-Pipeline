@@ -1,6 +1,6 @@
 # 🎵 Spotify Clone CI/CD Pipeline
 
-![Demo](./images/SpotifyCloneDemo-ezgif.com-optimize.gif)
+![Demo](./images/SpotifyDemo.gif)
 
 ## 🚀 Project Overview
 
@@ -8,6 +8,16 @@ This project demonstrates a fully automated **CI/CD pipeline** used to deploy a 
 
 The final application is hosted at:  
 🌐 [https://spotify.focusarchive.co](https://spotify.focusarchive.co)
+
+## 🔗 Spotify API Integration
+
+This application is powered by the **Spotify Web API**, enabling:
+
+- **Secure OAuth login** with real Spotify accounts
+- **Full playback access** from the user’s own Spotify library
+- Fetching of **playlists, recently played tracks, album art**, and more
+
+To enable these features, a secure domain (HTTPS) is required for authentication and redirect URIs.
 
 ## 🧰 Tech Stack
 
@@ -18,8 +28,8 @@ The final application is hosted at:
 | **Security**        | Trivy, SonarQube, OWASP Dependency Check            |
 | **Monitoring**      | Prometheus, Grafana, Node Exporter                  |
 | **Infrastructure**  | AWS EC2 (Ubuntu), Elastic IP                        |
-| **Reverse Proxy**   | Nginx + Certbot (SSL HTTPS setup)                  |
-| **Frontend App**    | React-based Spotify Clone (OAuth-enabled)          |
+| **Reverse Proxy**   | Nginx + Certbot (SSL HTTPS setup)                   |
+| **Frontend App**    | React-based Spotify Clone (OAuth-enabled)           |
 
 ## 🔄 Pipeline Flow
 
@@ -40,4 +50,4 @@ The final application is hosted at:
 
 ---
 
-Let me know if you'd like to add GitHub badges, file structure, setup instructions, or links to the repo and configuration files.
+Let me know if you want to include `.env` instructions for setting up your own Spotify credentials or how to register an app on Spotify Developer Dashboard.
