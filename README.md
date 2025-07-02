@@ -46,8 +46,5 @@ To enable these features, a secure domain (HTTPS) is required for authentication
 
 - The pipeline completes in under **5 minutes**.
 - All configurations and environments are separated across **three dedicated EC2 servers** for optimized performance and resource usage.
-- The project is a demonstration — not all setup steps are included in detail.
 
 ---
-
-Let me know if you want to include `.env` instructions for setting up your own Spotify credentials or how to register an app on Spotify Developer Dashboard.
