@@ -1,13 +1,13 @@
 # 🎵 Spotify Clone CI/CD Pipeline
 
-![Demo](./images/SpotifyCloneDemo.gif)
+![Demo](./images/SpotifyCloneDemo-ezgif.com-optimize.gif)
 
 ## 🚀 Project Overview
 
 This project demonstrates a fully automated **CI/CD pipeline** used to deploy a front-end **Spotify clone**. The application is built, tested, and deployed using Jenkins and Docker, with added layers of **security scanning** and **monitoring**.
 
 The final application is hosted at:  
-🌐 [https://spotify.focusarchive.co](https://spotify.focusarchive.co)
+🌐 [https://spotify.focusarchive.co](https://spotify.focusarchive.co) (likely down for cost reasons)
 
 ## 🔗 Spotify API Integration
 
