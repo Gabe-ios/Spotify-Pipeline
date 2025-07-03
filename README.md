@@ -1,6 +1,6 @@
 # 🎵 Spotify Clone CI/CD Pipeline
 
-![Demo](./images/SpotifyCloneDemo-ezgif.com-optimize.gif)
+![Demo](./images/SpotiftCloneGif.gif)
 
 ## 🚀 Project Overview
 
